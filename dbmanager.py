@@ -81,12 +81,12 @@ class DatabaseManager:
                         param = param_doc
                     else:
                         param = pd.concat(
-                            [param, pd.DataFrame(param_doc)],
+                            [param, pd.DataFrame.from_dict(param_doc)],
                             ignore_index=True,
                             sort=False,
                         )
                 if param.shape[0] > 0:
-                    param = param.drop(["_id", "IdLayer"], axis=1)
+                    param = param.drop(["_id"], axis=1)
             return param
         except:
             raise

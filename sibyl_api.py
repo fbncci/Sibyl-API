@@ -132,6 +132,9 @@ def dynamic_control_limits():
         print("test3")
         # get data stored in the database
         df_data = db_manager.get_data(param_db)
+        print("------- df_data -------")
+        print(df_data)
+        print("------- df_data -------")
         print("test4")
         print("------- param_db -------")
         print(param_db)
@@ -153,9 +156,6 @@ def dynamic_control_limits():
                 )
                 # add in the result the sendout parameters, so we don't need to publish these values
                 db_manager.delete_data(param_db)
-            else:
-                print("case3")
-                db_manager.store_data(data, param_db)
         else:
             print("case4: not enough data")
             # check if there is enough data for computation of control limits
