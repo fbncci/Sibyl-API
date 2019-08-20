@@ -163,22 +163,15 @@ def dynamic_control_limits():
             result["TimeStamp"] = df_data.tail(1)["TimeStamp"].values[0]
             # result["Source"] = df_data["Source"].unique()[0]
             data_to_send = {}
-            print(data_to_send)
             data_to_send["IdSig"] = param_db["IdSig"]
-            print(data_to_send)
             data_to_send["IdMachine"] = param_db["IdMachine"]
-            print(data_to_send)
             data_to_send["TimeStamp"] = df_data.tail(1)["TimeStamp"].values[0]
-            print(data_to_send)
             data_to_send["Value"] = content["data"]["Value"][0]
-            print(data_to_send)
             Kind = result["Kind"]
             Value = result["Value"]
             data_to_send["dynamic_control_limits"] = {}
             for k, v in zip(Kind, Value):
                 data_to_send["dynamic_control_limits"][k] = v
-            print(data_to_send)
-            print(jsonify(data_to_send))
         return jsonify(data_to_send)
     except Exception as e:
         return jsonify({"error": str(e)})
@@ -203,6 +196,9 @@ def cusum():
         for elm in data:
             data[elm] = [data[elm]]
         data = pd.DataFrame.from_dict(content["data"])
+        print("------- param_db -------")
+        print(data)
+        print("------- param_db -------")
         fname = inspect.stack()[0][3]
         param = content["param"][fname]
         result = pd.DataFrame()
@@ -210,10 +206,19 @@ def cusum():
         training_length = param["training_length"]
         param_db = dict()
         param_db["IdMachine"] = data["IdMachine"].unique()[0]
+        print("------- param_db -------")
+        print(param_db)
+        print("------- param_db -------")
         # get cusum threshold if alredy computed
         df_param = db_manager.get_param(param_db)
+        print("------- df_param -------")
+        print(df_param)
+        print("------- df_param -------")
         # get data stored in database
         df_data = db_manager.get_data(param_db)
+        print("------- df_data -------")
+        print(df_data)
+        print("------- df_data -------")
         # merge old and new data
         df_data = pd.concat([df_data, data], ignore_index=True, sort=False)
         # check if cusum threshodl already computed
@@ -291,7 +296,7 @@ def time_similarity(data, param):
             result = Similarity.time_distance(signature, runtime)
             # we don't want to publish these values out from sibyl
         db_manager.store_data(data, param_db)
-        return result.to_json()
+        return jsonify(result.to_json())
     except:
         raise
 
