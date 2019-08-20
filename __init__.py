@@ -1,3 +1,4 @@
+from gevent import monkey; monkey.patch_all()
 from gevent.pywsgi import WSGIServer
 from sibyl_api import app
 

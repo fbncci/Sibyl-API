@@ -36,8 +36,10 @@ def static_control_limits():
     """
     try:
         content = request.get_json()
-        print(content["data"])
-        data = content["data"]
+        try:
+            data = content["data"]
+        except:
+            data = content
         result = cl.lambda_handler(data)
         return jsonify(result)
     except Exception as e:
@@ -102,60 +104,33 @@ def dynamic_control_limits():
     try:
         content = request.get_json()
         data = content["data"]
-        print("test1")
         for elm in data:
             data[elm] = [data[elm]]
         data = pd.DataFrame.from_dict(content["data"])
-        print("test2")
         fname = inspect.stack()[0][3]
-        # print("-------function name-------")
-        # print(fname)
-        # print("-------function name-------")
         param = content["param"][fname]
         result = pd.DataFrame()
         remove_outliers_train = param["remove_outliers_train"]
         remove_outliers_run = param["remove_outliers_run"]
         training_length = param["training_length"]
         runtime_window = param["runtime_window"]
-        print("test3")
-        # print("------- data -------")
-        # print(data)
-        # print("------- data -------")
-
         param_db = dict()
         param_db["IdMachine"] = data["IdMachine"].unique()[0]
         param_db["IdSig"] = data["IdSig"].unique()[0]
-        print("------- param_db -------")
-        print(param_db)
-        print("------- param_db -------")
         # define parameter in order to ge control limits from database
         # get control limits if already computed
         df_param = db_manager.get_param(param_db)
-        print("------- df_param -------")
-        print(df_param)
-        print("------- df_param -------")
-        print("test3.5")
         # get data stored in the database
         df_data = db_manager.get_data(param_db)
-        # print("------- df_data -------")
-        # print(df_data)
-        # print("------- df_data -------")
-        print("test4")
-        # print("------- param_db -------")
-        # print(param_db)
-        # print("------- param_db -------")
         # merge old data and new data
         df_data = pd.concat([df_data, data], ignore_index=True, sort=False)
         # get identifier os plit if present
         # check if control limits already computed
 
         if len(df_param) > 0:
-            print("test5")
-            print("case1: there is enough data and control limits are calculated")
             # check if there is enough data for application of control limits
-            print("len(df_data)="+str(len(df_data))+" runtime_window="+str(runtime_window) )
+            # print("len(df_data)="+str(len(df_data))+" runtime_window="+str(runtime_window) )
             if len(df_data) >= runtime_window:
-                print("case2: there is enough data and control limits are calculated (above runtime window)")
                 # sort data by timestamp
                 df_data.sort_values(by=["TimeStamp"], inplace=True, ascending=True)
                 df_data.reset_index(drop=True, inplace=True)
@@ -165,11 +140,9 @@ def dynamic_control_limits():
                 # add in the result the sendout parameters, so we don't need to publish these values
                 # db_manager.delete_data(param_db)
         else:
-            print("case4: not enough data")
             # check if there is enough data for computation of control limits
-            print("len(df_data)="+str(len(df_data))+" training_length="+str(training_length) )
+            # print("len(df_data)="+str(len(df_data))+" training_length="+str(training_length) )
             if len(df_data) >= training_length:
-                print("case5: there is now enough data to compute control limits")
                 # sort data by timestamp
                 df_data.sort_values(by=["TimeStamp"], inplace=True, ascending=True)
                 df_data.reset_index(drop=True, inplace=True)
@@ -180,24 +153,21 @@ def dynamic_control_limits():
                 # db_manager.delete_data(param_db)
                 # we want to publish these values out from sibyl
                 result["content"] = "cl"
-                print("-----result-----")
-                print(result)
-                print("-----result-----")
             else:
-                print("case6: storing data because there is not enough yet")
                 db_manager.store_data(data, param_db)
-                print("...succesfully stored data")
         if len(result) > 0:
-            print("case7: result is ready")
-            print("-----result2-----")
-            print(result)
-            print("-----result2-----")
-
             result["IdMachine"] = param_db["IdMachine"]
             result["IdSig"] = param_db["IdSig"]
             result["TimeStamp"] = df_data.tail(1)["TimeStamp"].values[0]
             # result["Source"] = df_data["Source"].unique()[0]
-        return jsonify(result.to_json())
+            data_to_send = {}
+            data_to_send["IdSig"] = param_db["IdSig"]
+            data_to_send["TimeStamp"] = df_data.tail(1)["TimeStamp"].values[0]
+            Kind = result["Kind"]
+            Value = result["Value"]
+            for k,v in zip(Kind,Value):
+                data_to_send[k]=v
+        return jsonify(data_to_send)
     except Exception as e:
         return jsonify({"error": str(e)})
 
@@ -217,8 +187,12 @@ def cusum():
     """
     try:
         content = request.get_json()
+        data = content["data"]
+        for elm in data:
+            data[elm] = [data[elm]]
         data = pd.DataFrame.from_dict(content["data"])
-        param = content["param"]
+        fname = inspect.stack()[0][3]
+        param = content["param"][fname]
         result = pd.DataFrame()
         remove_outliers = param["remove_outliers"]
         training_length = param["training_length"]
