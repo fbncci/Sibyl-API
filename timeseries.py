@@ -50,9 +50,10 @@ class TimeSeries:
                 numpy.array: the signal without outlier
         """
         try:
-            if value.shape[0] > 0:
-                percent = remove_outlier
-                q75, q25 = np.nanpercentile(
+            if len(value) > 0:
+                percent = float(remove_outlier)
+                value = value.dropna().astype("float64")
+                q75, q25 = np.percentile(
                     value, [percent, 100 - percent], interpolation="linear"
                 )
                 iqr = q75 - q25

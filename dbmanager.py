@@ -78,14 +78,18 @@ class DatabaseManager:
             if self.db_param.count() > 0:
                 for param_doc in self.db_param.find(param_db):
                     if len(param) == 0:
-                        param = param_doc
+                        for elm in param_doc:
+                            param_doc[elm] = [param_doc[elm]]
+                        param = pd.DataFrame.from_dict(param_doc)
                     else:
+                        for elm in param_doc:
+                            param_doc[elm] = [param_doc[elm]]
                         param = pd.concat(
                             [param, pd.DataFrame.from_dict(param_doc)],
                             ignore_index=True,
                             sort=False,
                         )
-                if param.shape[0] > 0:
+                if len(param) > 0:
                     param = param.drop(["_id"], axis=1)
             return param
         except:
@@ -162,14 +166,18 @@ class DatabaseManager:
                 None
         """
         try:
-            if "IdSig" in param:
-                data.pop("IdMachine")
-                data.pop("IdSig")
-            if "IdMachine" in param:
-                data.pop("IdMachine")
-            data_to_store = data
-            for key in data_to_store:
-                data_to_store[key] = param[key]
+            # if "IdSig" in param:
+            #     data.pop("IdMachine")
+            #     data.pop("IdSig")
+            # if "IdMachine" in param:
+            #     data.pop("IdMachine")
+            data_to_store = {}
+            data_to_store["IdSig"] = data["IdSig"].unique()[0]
+            data_to_store["TimeStamp"] = data["TimeStamp"].unique()[0]
+            Kind = data["Kind"]
+            Value = data["Value"]
+            for k,v in zip(Kind,Value):
+                data_to_store[k]=v
             self.db_param.insert_one(data_to_store)
         except:
             raise
