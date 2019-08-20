@@ -196,11 +196,14 @@ def cusum():
         for elm in data:
             data[elm] = [data[elm]]
         data = pd.DataFrame.from_dict(content["data"])
-        print("------- param_db -------")
+        print("------- data -------")
         print(data)
-        print("------- param_db -------")
+        print("------- data -------")
         fname = inspect.stack()[0][3]
         param = content["param"][fname]
+        print("------- param -------")
+        print(param)
+        print("------- param -------")
         result = pd.DataFrame()
         remove_outliers = param["remove_outliers"]
         training_length = param["training_length"]
@@ -221,12 +224,12 @@ def cusum():
         print("------- df_data -------")
         # merge old and new data
         df_data = pd.concat([df_data, data], ignore_index=True, sort=False)
-        # check if cusum threshodl already computed
+        # check if cusum threshold already computed
         if df_param.shape[0] > 0:
             # sot values by timestamp
             df_data.sort_values(by=["TimeStamp"], inplace=True, ascending=True)
             df_data.reset_index(drop=True, inplace=True)
-            result = TimeSeries.run_cusum(df_data, df_param)
+            result = ts.run_cusum(df_data, df_param)
             # delete param in order to delete old values for sp and sn
             db_manager.delete_param(param_db)
             db_manager.store_param(result, param_db)
@@ -238,7 +241,7 @@ def cusum():
                 # sort values by timestamp
                 df_data.sort_values(by=["TimeStamp"], inplace=True, ascending=True)
                 df_data.reset_index(drop=True, inplace=True)
-                result = TimeSeries.define_cusum(t_s, df_data, remove_outliers)
+                result = ts.define_cusum(t_s, df_data, remove_outliers)
                 # we want to publish these values out from sibyl# we want to publish these values out from sibyl
                 result["content"] = "cusum"
                 # define sp and sn initialization in order to store in database
