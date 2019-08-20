@@ -24,6 +24,7 @@ cl = StaticControlLimits()
 pewma_model = Pewma()
 ts = TimeSeries()
 
+
 @app.route('/static_control_limits', methods=['POST'])
 def static_control_limits():
     """ Function used to check if data is above set threshold
@@ -49,7 +50,7 @@ def static_control_limits():
 @app.route('/configure_pewma', methods=['POST'])
 def configure_pewma():
     content = request.get_json()
-    #get params from config and assign to variables
+    # get params from config and assign to variables
     T = content["T"]
     alpha_0 = content["alpha_0"]
     beta = content["beta"]
@@ -58,6 +59,7 @@ def configure_pewma():
     key_param = content["key_param"]
     length_limit = content["length_limit"]
     pewma = Pewma(T, alpha_0, beta, threshold, data_cols, key_param, length_limit)
+
 
 @app.route('/pewma', methods=['POST'])
 def pewma():
@@ -173,8 +175,8 @@ def dynamic_control_limits():
             Kind = result["Kind"]
             Value = result["Value"]
             data_to_send["dynamic_control_limits"] = {}
-            for k,v in zip(Kind,Value):
-                data_to_send["dynamic_control_limits"][k]=v
+            for k, v in zip(Kind, Value):
+                data_to_send["dynamic_control_limits"][k] = v
             print(data_to_send)
             print(jsonify(data_to_send))
         return jsonify(data_to_send)
@@ -257,6 +259,7 @@ def cusum():
         return jsonify(result.to_json())
     except:
         raise
+
 
 def time_similarity(data, param):
     """ Function used to compute the similarity between 2 signals

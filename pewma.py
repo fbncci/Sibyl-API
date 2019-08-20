@@ -57,8 +57,9 @@ class Pewma:
                 return(event)
             except:
                 return event
-        except TypeError:
-            Pewma().lambda_handler(json.loads(event))
+        except Exception as e:
+            event["pewma"] = {"error": str(e)}
+            return (event)
 
 
     def update_list_of_last_n_points(self, event, current_data):
