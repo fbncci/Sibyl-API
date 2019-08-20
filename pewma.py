@@ -46,17 +46,17 @@ class Pewma:
                 self.coll.insert_one(newRecord)  # write new record
 
             self.coll.replace_one(query, newRecord, True)  # write new record
-
             try:
-                event["Value_is_Anomaly"] = newRecord["Value_is_Anomaly"]
+                event["pewma"] = {}
+                event["pewma"]["STD_Value"] = newRecord["STD_Value"]
+                event["pewma"]["P_Value"] = newRecord["P_Value"]
+                event["pewma"]["Value_is_Anomaly"] = newRecord["Value_is_Anomaly"]
                 if event["Value_is_Anomaly"]:
                     print("Anomaly detected at " +
                           event["TimeStamp"]+" from"+event["IdSig"]+"id "+event["IdMachine"])
-                event["STD_Value"] = newRecord["STD_Value"]
-                event["P_Value"] = newRecord["P_Value"]
+                return(event)
             except:
-                pass
-            return event
+                return event
         except TypeError:
             Pewma().lambda_handler(json.loads(event))
 

@@ -18,20 +18,20 @@ class StaticControlLimits:
         response = self.coll.find_one(query)
         value = float(event["Value"])
         if response:
-            newRecord = event
             warningLimit = response["warningLimit"]
-            damageLimit = response["damageLimit"]
-            newRecord["warningLimit"] = False
-            newRecord["damageLimit"] = False
+            damageLimit = response["warningLimit"]
+            event["static_control_limits"] = {}
+            event["static_control_limits"]["warningLimit"] = False
+            event["static_control_limits"]["damageLimit"] = False
             if value > warningLimit:
-                newRecord["warningLimit"] = True
+                event["static_control_limits"] = True
             if value > damageLimit:
-                newRecord["damageLimit"] = True  
+                event["static_control_limits"] = True
         else:
-            newRecord = query
-            newRecord["warningLimit"] = 250
-            newRecord["damageLimit"] = 500
-            self.coll.insert_one(newRecord)  # write new record
+            event = query
+            event["static_control_limits"] = 250
+            event["static_control_limits"] = 500
+            self.coll.insert_one(event)  # write new record
         return event
             
     def mongo_setup(self, host="localhost", port="27017", dbName="Sibyl", collectionName="control_limits"):

@@ -161,12 +161,22 @@ def dynamic_control_limits():
             result["TimeStamp"] = df_data.tail(1)["TimeStamp"].values[0]
             # result["Source"] = df_data["Source"].unique()[0]
             data_to_send = {}
+            print(data_to_send)
             data_to_send["IdSig"] = param_db["IdSig"]
+            print(data_to_send)
+            data_to_send["IdMachine"] = param_db["IdMachine"]
+            print(data_to_send)
             data_to_send["TimeStamp"] = df_data.tail(1)["TimeStamp"].values[0]
+            print(data_to_send)
+            data_to_send["Value"] = content["data"]["Value"][0]
+            print(data_to_send)
             Kind = result["Kind"]
             Value = result["Value"]
+            data_to_send["dynamic_control_limits"] = {}
             for k,v in zip(Kind,Value):
-                data_to_send[k]=v
+                data_to_send["dynamic_control_limits"][k]=v
+            print(data_to_send)
+            print(jsonify(data_to_send))
         return jsonify(data_to_send)
     except Exception as e:
         return jsonify({"error": str(e)})
