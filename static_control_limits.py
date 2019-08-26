@@ -13,27 +13,35 @@ class StaticControlLimits:
         '''
         self.mongo_setup(host, port, dbName, collectionName)
 
-    def lambda_handler(self, event):
-        query = {"IdSig": event["IdSig"]}
-        response = self.coll.find_one(query)
-        value = float(event["Value"])
-        if response:
-            warningLimit = response["warningLimit"]
-            damageLimit = response["warningLimit"]
-            event["static_control_limits"] = {}
-            event["static_control_limits"]["warningLimit"] = False
-            event["static_control_limits"]["damageLimit"] = False
-            if value > warningLimit:
-                event["static_control_limits"] = True
-            if value > damageLimit:
-                event["static_control_limits"] = True
+    def lambda_handler(self, event, param=None):
+        if param:
+            response = param
+            self.new_record(event, param)
         else:
-            event = query
-            event["static_control_limits"] = 250
-            event["static_control_limits"] = 500
-            self.coll.insert_one(event)  # write new record
+            query = {"IdSig": event["IdSig"]}
+            response = self.coll.find_one(query)
+
+        result = self.test_data(event, response)
+
+        return result
+
+    def test_data(self, event, response):
+        value = float(event["Value"])
+        event["static_control_limits"] = {}
+        event["static_control_limits"]["warningLimit"] = False
+        event["static_control_limits"]["damageLimit"] = False
+        if value > response["warningLimit"]:
+            event["static_control_limits"] = True
+        if value > response["damageLimit"]:
+            event["static_control_limits"] = True
         return event
-            
+
+    def new_record(self, event, param):
+        event = {"IdSig": event["IdSig"], "static_control_limits": {}}
+        event["static_control_limits"]["warningLimit"] = param["warningLimit"]
+        event["static_control_limits"]["damageLimit"] = param["damageLimit"]
+        self.coll.insert_one(event)  # write new record
+
     def mongo_setup(self, host="localhost", port="27017", dbName="Sibyl", collectionName="control_limits"):
         mongoClient = pymongo.MongoClient(
             "mongodb://" + host + ":" + port + "/")
